@@ -59,7 +59,9 @@ module FakeWeb
         File.read(options[:body])
       else
         options[:body]
-      end
+      end.tap {|body|
+        options[:content_length] ||= body.length
+      }
     end
 
     def baked_response

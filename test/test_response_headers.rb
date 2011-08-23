@@ -29,6 +29,24 @@ class TestResponseHeaders < Test::Unit::TestCase
     assert_equal "user_id=1; example=yes", response['Set-Cookie']
   end
 
+  def test_content_length_default_when_registering_with_string
+    FakeWeb.register_uri(:get, "http://example.com/users.json", :body => '[{"username": "chrisk"}]')
+    response = Net::HTTP.start("example.com") { |query| query.get("/users.json") }
+    assert_equal '24', response['Content-Length']
+  end
+
+  def test_content_length_default_when_registering_with_file
+    FakeWeb.register_uri(:get, "http://example.com/users.json", :body => fixture_path("test_example.txt"))
+    response = Net::HTTP.start("example.com") { |query| query.get("/users.json") }
+    assert_equal '20', response['Content-Length']
+  end
+
+  def test_explicit_content_length_when_registering
+    FakeWeb.register_uri(:get, "http://example.com/users.json", :content_length => 123, :body => '[{"username": "chrisk"}]')
+    response = Net::HTTP.start("example.com") { |query| query.get("/users.json") }
+    assert_equal '123', response['Content-Length']
+  end
+
   def test_multiple_set_cookie_headers
     FakeWeb.register_uri(:get, "http://example.com", :set_cookie => ["user_id=1", "example=yes"])
     response = Net::HTTP.start("example.com") { |query| query.get("/") }
